@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  backend:
+    build: ./backend
+    container_name: real-sim-backend
+    env_file: .env
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend/app:/app/app:ro
+    # 初期は開発を優先し --reloadを有効化
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build: ./frontend
+    container_name: real-sim-frontend
+    env_file: .env
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app:rw
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+    depends_on:
+      - backend
