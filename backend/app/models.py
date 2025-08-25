@@ -1,8 +1,8 @@
-from pydantic import BaseModel, field
-from typing import Literal, Optional, List
+from pydantic import BaseModel, Field, ValidationError
+from typing import Literal, List
 
 Mode = Literal["rent", "house", "condo"]
-Resion = Literal[
+Region = Literal[
     "東京大都心部",
     "関東地価集中地域",
     "地方都市地価集中地域",
@@ -13,7 +13,7 @@ Resion = Literal[
 
 class BaseRequest(BaseModel):
     horizon_years: int = Field(ge=1, le=50)
-    region: Resion
+    region: Region
     rounding_rule: Literal["round", "floor", "ceil"] = "round"
 
 class RentRequest(BaseRequest):
@@ -43,7 +43,7 @@ class CondoRequest(OwnerCommon):
     mgmt_increase_every_5y_pct: float = Field(ge=0.0)
     reserve_increase_every_5y_pct: float = Field(ge=0.0)
 
-class YearRow(BaseMobel):
+class YearRow(BaseModel):
     year: int
     rent: int = 0
     renewal_fee: int = 0

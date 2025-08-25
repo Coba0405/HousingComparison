@@ -1,31 +1,49 @@
 # CORSでフロントからのアクセスを許可
 # エンドポイントをモード別にわけ、I/Oの明快さを優先
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from .config import ALLWED_ORIGINS
-from .models import RentRequest, HouseRequest, CondoRequest,SimulationResponse, YearRow
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from app.config import ALLWED_ORIGINS
+from app.models import RentRequest, HouseRequest, CondoRequest,SimulationResponse, YearRow
 from .services.simulation import simulate_rent, simulate_house, simulate_condo
+from app.services.simulation import simulate_rent,simulate_house, simulate_condo
+from pydantic import ValidationError
 
-app = FastAPI(title="Lease vs Own Simulator v1")
+app = Flask(__name__)
+CORS(app, origins=ALLWED_ORIGINS, supports_credentials=True)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLWED_ORIGINS,
-    allow_credentials=True, allow_mothods=["*"], allow_hoeders=["*"]
-)
+def to_response(mode: str, region: str, years: int, rows_dict):
+    rows = [YearRow(**r).dict() for r in rows_dict]
+    return SimulationResponse(mode=mode, region=region, years=years, rows=rows).dict()
 
-@app.post("/simulate_rent", response_model=SimulationResponse)
-def simulate_rent_api(req: RentRequest):
-    rows = simulate_rent(req)
-    return SimulationResponse(mode="rent", region=req.region, years=req.horizon_years, rows=[YearRow(**r) for r in rows])
+@app.route('/simulate/rent', methods=['POST'])
+def rent_api():
+    try:
+        payload = request.get_json(force=True)
+        req = RentRequest(**payload)
+        rows = simulate_rent(req)
+        return jsonify(to_response("rent", req.region, req.horizon_years, rows))
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "detail": e.errors()}), 400
 
-@app.post("/simulate/house", response_model=SimulationResponse)
-def simulate_house_api(req: HouseRequest):
-    rows = simulate_house(req)
-    return SimulationResponse(mode="house", region=req.region, years=req.horizon_years, rows=[YearRow(**r) for r in rows])
+@app.route('/simulate/house', methods=['POST'])
+def house_api():
+    try:
+        payload = request.get_json(force=True)
+        req = HouseRequest(**payload)
+        rows = simulate_house(req)
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "detail": e.errors()})
 
-@app.post("simulate/condo", response_model=SimulationResponse)
-def simulate_condo_api(req: CondoRequest):
-    rows = simulate_condo(req)
-    return SimulationResponse(mode="condo", region=req.region, years=req.horizon_years, rows=[YearRow(**r) for r in rows])
+@app.route('/simulate/condo', methods=['POST'])
+def condo_api():
+    try:
+        payload = request.get.json(force=True)
+        req = CondoRequest(**payload)
+        rows = simulate_condo(req)
+        return jsonify(to_response("condo", req.region, req.horizon_years, rows))
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "detail": e.errors()})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000, debug=True)
