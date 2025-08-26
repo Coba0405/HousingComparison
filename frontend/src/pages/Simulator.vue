@@ -6,7 +6,6 @@ import RentInputs from '@/components/RentInputs.vue';
 import OwnerInputs from '@/components/OwnerInputs.vue';
 import CondoInputs from '@/components/CondoInputs.vue';
 import YearlyTable from '@/components/YearlyTable.vue';
-import ModeSelector from '@/components/ModeSelector.vue';
 
 const params = new URLSearchParams(location.search)
 const mode = ref(params.get('mode') || 'default')
@@ -22,7 +21,8 @@ const showCondo = computed(() => mode.value === 'condo')
             <RentInputs />
             <OwnerInputs />
         </div>
-        <div v-else>
+        <div v-else class="grid">
+            <RentInputs />
             <CondoInputs />
         </div>
 
