@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { simulateRent } from '../utils/api.js'
 
+const emit = defineEmits(['done'])
+
 const form = ref({
     horizon_years: 10,
     region: '東京大都市部',
@@ -13,8 +15,12 @@ const form = ref({
 })
 
 async function submit() {
-    const res = await sumilateRent(form.value)
-    console.log('rent result', res)
+    try {
+        const res = await simulateRent(form.value)
+        emit('done', res)
+    } catch (e) {
+        console.log('simulateRent failed', e)
+    }
 }
 </script>
 

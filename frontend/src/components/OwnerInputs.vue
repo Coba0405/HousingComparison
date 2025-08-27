@@ -1,6 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { defineSSRCustomElement, ref } from 'vue'
 import { simulateHouse } from '../utils/api.js'
+
+const emit = defineEmits(['done'])
 
 const form = ref({
     horizon_years: 10,
@@ -16,8 +18,12 @@ const form = ref({
 })
 
 async function submit() {
-    const res = await simulateHouse(form.value)
-    console.log('house result', res)
+    try {
+        const res = await simulateHouse(form.value)
+        emit('done', res)
+    } catch (e) {
+        console.log('simulateHouse failed', e)
+    }
 }
 </script>
 

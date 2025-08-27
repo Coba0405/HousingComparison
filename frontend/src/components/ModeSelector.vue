@@ -1,6 +1,10 @@
 <script setup>
 import { ref } from 'vue'
 
+const getModeFromUrl = () => {
+    const m = new URLSearchParams(location.search).get('mode')
+    return m === 'condo' ? 'condo' : 'owner'
+}
 const params = new URLSearchParams(location.search)
 const currentMode = ref(params.get('mode') || 'owner')
 
