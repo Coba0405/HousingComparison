@@ -7,8 +7,8 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - ./backend/app:/app/app:ro
-    command: python app/main.py
+      - ./backend/app:/app/app:rw
+    command: python -m app.main
 
   frontend:
     build: ./frontend

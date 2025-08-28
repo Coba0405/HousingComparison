@@ -1,20 +1,27 @@
-const BASE = 'http://lacalhost:8000'
+const BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000';
 
-export async function simulateRent(payload) {
-    const r = await fetch(`${BASE}/simulate/rent`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-    })
-    return r.json()
+async function postJSON(path, payload) {
+    const res = await fetch(`${BASE}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status} ${res.statusText}: ${text}`);
+    }
+    return res.json();
 }
-export async function simulateHouse(payload) {
-    const r = await fetch(`${BASE}/simulate/house`, {
-        mothod: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-    })
-    return r.json()
+
+export function simulateRent(payload) {
+    return postJSON('/simulate/rent', payload);
+}
+
+export async function simulateOwner(payload) {
+    return postJSON('/simulate/owner', payload);
 }
 export async function simulateCondo(payload) {
-    const r = await fetch(`${BASE}/simulate/condo`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-    })
-    return r.json()
+    return postJSON('/simulate/condo', payload);
 }
+
+export { BASE };

@@ -1,11 +1,12 @@
 <script setup>
-import { defineSSRCustomElement, ref } from 'vue'
-import { simulateHouse } from '../utils/api.js'
+import { ref } from 'vue'
+import { simulateOwner } from '../utils/api.js'
 
 const emit = defineEmits(['done'])
+const props = defineProps({ horizonYears: { type: Number, required: true} })
 
 const form = ref({
-    horizon_years: 10,
+    horizon_years: 35,
     region: '東京大都市部',
     rouding_rule: 'round',
     home_price: 30000000,
@@ -17,21 +18,23 @@ const form = ref({
     house_renovation_charge_month: 12,
 })
 
-async function submit() {
-    try {
-        const res = await simulateHouse(form.value)
-        emit('done', res)
-    } catch (e) {
-        console.log('simulateHouse failed', e)
+async function submit(hYears = mergeProps.horizonYears) {
+    const payload = {
+        ...form.value,
+        horizon_years: hYears,
     }
+    const res = await simulateOwner(payload)
+    emit('done', res)
 }
+
+defineExpose({ submit })
 </script>
 
 <template>
     <div class="card">
         <h2>戸建 入力</h2>
         <label>比較年数<input type="number" v-model.number="form.horizon_years" /></label>
-        <label> 地域<input v-model="form.region" /></label>
+        <label>地域<input v-select="form.region" /></label>
         <label>物件価格<input type="number" v-model.number="form.home_price" /></label>
         <label>年利（固定）<input type="number" step="0.001" v-model.number="form.loan_annual_rate" /></label>
         <label>10年ごとの修繕（円）<input type="number" v-model.number="form.house_renovation_every_10y_amount" /></label>

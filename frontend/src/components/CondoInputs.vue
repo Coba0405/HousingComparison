@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { simulateCondo } from '../utils/api.js'
 
 const emit = defineEmits(['done'])
+const props = defineProps({ horizonYears: { type: Number, required: true } })
 
 const form = ref({
     horizon_years: 10,
@@ -17,14 +18,16 @@ const form = ref({
     reserve_increase_every_5y_pct: 0.20,
 })
 
-async function submit() {
-    try {
-        const res = await simulateCondo(form.value)
-        emit('done', res)
-    } catch (e) {
-        console.log('simulateCondo failed', e)
+async function submit(hYears = props.horizonYears) {
+    const payload = {
+        ...form.value,
+        horizon_years: hYears,
     }
+    const res = await simulateCondo(payload)
+    emit('done', res)
 }
+
+defineExpose({ submit })
 </script>
 
 <template>
@@ -34,6 +37,7 @@ async function submit() {
         <label>修繕積立金（月）<input type="number" v-model.number="form.reserve_monthly0" /></label>
         <label>修繕費 5年ごと増率<input type="number" step="0.01" v-model.number="form.mgmt_increase_every_5y_pct" /></label>
         <label>修繕積立金 5年ごと増率<input type="number" step="0.01" v-model.number="form.mgmt_increase_every_5y_pct" /></label>
+        <label>地域<input v-select="form.region" /></label>
         <button @click="submit">計算</button>
     </div>
 </template>

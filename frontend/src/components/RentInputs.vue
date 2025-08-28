@@ -4,9 +4,11 @@ import { simulateRent } from '../utils/api.js'
 
 const emit = defineEmits(['done'])
 
+const props = defineProps({
+    horizonYears: { type: Number, required: true }
+})
+
 const form = ref({
-    horizon_years: 10,
-    region: '東京大都市部',
     rounding_rule: 'round',
     rent_monthly: 100000,
     renewal_interval_years: 2,
@@ -14,14 +16,20 @@ const form = ref({
     contents_insurance_amount: 20000,
 })
 
-async function submit() {
+async function submit(hYears = props.horizonYears) {
     try {
-        const res = await simulateRent(form.value)
+        const payload = {
+            ...form.value,
+            horizon_years: hYears,
+        }
+        const res = await simulateRent(payload)
         emit('done', res)
     } catch (e) {
         console.log('simulateRent failed', e)
     }
 }
+
+defineExpose({ submit })
 </script>
 
 <template>

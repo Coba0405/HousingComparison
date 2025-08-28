@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ValidationError
-from typing import Literal, List
+from typing import Literal, List, Optional
 
 Mode = Literal["rent", "house", "condo"]
 Region = Literal[
@@ -13,7 +13,6 @@ Region = Literal[
 
 class BaseRequest(BaseModel):
     horizon_years: int = Field(ge=1, le=50)
-    region: Region
     rounding_rule: Literal["round", "floor", "ceil"] = "round"
 
 class RentRequest(BaseRequest):
@@ -56,8 +55,9 @@ class YearRow(BaseModel):
     reserve_fee: int = 0
     total_cost_year: int
     cum_total_cost: int
+
 class SimulationResponse(BaseModel):
     mode: Mode
-    region: Region
+    region: Optional[Region] = None
     years: int
     rows: List[YearRow]

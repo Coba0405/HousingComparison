@@ -2,10 +2,10 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir fastapi uvicorn pydantic
+RUN pip install --no-cache-dir flask flask-cors pydantic
 
 COPY app /app/app
 
 EXPOSE 8000
 
-CMD ["python", "app/main.py"]
+CMD ["python", "-m", "app.main"]
