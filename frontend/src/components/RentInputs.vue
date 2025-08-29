@@ -38,7 +38,6 @@ defineExpose({ submit })
         <label>家賃（月）<input type="number" v-model.number="form.rent_monthly" /></label>
         <label>更新料（2年ごと）<input type="number" v-model.number="form.renewal_fee_amount" /></label>
         <label>家財保険（2年ごと）<input type="number" v-model.number="form.contents_insurance_amount" /></label>
-        <button @click="submit">計算</button>
     </div>
 </template>
 

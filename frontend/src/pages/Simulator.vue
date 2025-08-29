@@ -6,6 +6,7 @@ import RentInputs from '@/components/RentInputs.vue';
 import OwnerInputs from '@/components/OwnerInputs.vue';
 import CondoInputs from '@/components/CondoInputs.vue';
 import YearlyTable from '@/components/YearlyTable.vue';
+import ComparisonSummary from '@/components/ComparisonSummary.vue';
 
 const horizonYears = ref(35)
 
@@ -52,6 +53,37 @@ function onCondoDone(payload) { results.condo = payload }
                 <input type="number"  min="1" step="1" v-model.number="horizonYears">
             </label>
             <button @click="submitAll">両方計算</button>
+        </div>
+
+        <div class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>支払家賃</th>
+                    <th>住宅ローン返済額</th>
+                    <th>差額</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ horizonYears }}年目の毎月支払額</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>{{ horizonYears }}年目の年間支払額</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>{{ horizonYears }}年間の支払総額</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
         </div>
 
         <div class="tables">

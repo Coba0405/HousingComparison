@@ -18,6 +18,15 @@ const form = ref({
     house_renovation_charge_month: 12,
 })
 
+const regionOptions = [
+    { value: 'tokyo_core', label: '東京大都心部' },
+    { value: 'kanto_dense', label: '関東地価集中地域' },
+    { value: 'regional_city_dense', label: '地方都市地価集中地域' },
+    { value: 'regional_dense', label: '地方地価集中地域' },
+    { value: 'regional', label: '地方地域' },
+    { value: 'depopulated', label: '地方過疎地域' },
+]
+
 async function submit(hYears = mergeProps.horizonYears) {
     const payload = {
         ...form.value,
@@ -34,7 +43,14 @@ defineExpose({ submit })
     <div class="card">
         <h2>戸建 入力</h2>
         <label>比較年数<input type="number" v-model.number="form.horizon_years" /></label>
-        <label>地域<input v-select="form.region" /></label>
+        <label>地域
+            <select v-model="form.region" class="border rounded px-2 py-1">
+                <option value="">選択してください</option>
+                <option v-for="opt in regionOptions" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
+                </option>
+            </select>
+        </label>
         <label>物件価格<input type="number" v-model.number="form.home_price" /></label>
         <label>年利（固定）<input type="number" step="0.001" v-model.number="form.loan_annual_rate" /></label>
         <label>10年ごとの修繕（円）<input type="number" v-model.number="form.house_renovation_every_10y_amount" /></label>
