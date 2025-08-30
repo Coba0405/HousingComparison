@@ -1,12 +1,12 @@
 <script setup>
 // URLの?mode=condo を見て入力フォームを切替
 import { computed, ref, reactive } from 'vue'
+import { yen } from '../utils/money.js'
 import ModeSelector from '@/components/ModeSelector.vue';
 import RentInputs from '@/components/RentInputs.vue';
 import OwnerInputs from '@/components/OwnerInputs.vue';
 import CondoInputs from '@/components/CondoInputs.vue';
 import YearlyTable from '@/components/YearlyTable.vue';
-import ComparisonSummary from '@/components/ComparisonSummary.vue';
 
 const horizonYears = ref(35)
 
@@ -33,6 +33,50 @@ function submitAll() {
 function onRentDone(payload) { results.rent = payload }
 function onOwnerDone(payload) { results.owner = payload }
 function onCondoDone(payload) { results.condo = payload }
+
+function pickAnnual(row) {
+    return (
+        Number(row?.total_cost_year) ??
+        Number(row?.total) ??
+        Number(row?.year_total) ??
+        0
+    )
+}
+
+// n年目の行を取得
+function getNthYearRow(rows, n) {
+    if (!Array.isArray(rows) || rows.length === 0 || !Number.isFinite(n)) return null
+    const byYear = rows.find(r => Number(r?.year) === n)
+    if (byYear) return byYear
+    const idx = Math.max(0, Math.min(rows.length - 1, n - 1))
+    return rows[idx] ?? rows[rows.length - 1]
+}
+
+// 賃貸サマリー（n年目の毎月、年間、n年間の総額）
+const rentSummary = computed(() => {
+    const rows =results.rent?.rows
+    if (!Array.isArray(rows) || rows.length === 0) return null
+
+    const n = Number(horizonYears.value)
+    const nthRow = getNthYearRow(rows, n)
+    if (!nthRow) return null
+
+    const annualN = pickAnnual(nthRow)
+    const monthlyN = annualN / 12
+
+    // 先頭〜n年目までの総額（行数がn未満ならある分だけ合算）
+    const upto = Math.min(n, rows.length)
+    let totalNYears = 0
+    for (let i = 0; i < upto; i++) {
+        totalNYears += pickAnnual(rows[i])
+    }
+
+    return {
+        monthlyFinal: monthlyN,
+        annualFinal: annualN,
+        totalNYears: totalNYears,
+    }
+})
 </script>
 
 <template>
@@ -55,7 +99,7 @@ function onCondoDone(payload) { results.condo = payload }
             <button @click="submitAll">両方計算</button>
         </div>
 
-        <div class="table">
+        <table v-if="rentSummary" class="summary-table">
             <thead>
                 <tr>
                     <th></th>
@@ -67,24 +111,24 @@ function onCondoDone(payload) { results.condo = payload }
             <tbody>
                 <tr>
                     <td>{{ horizonYears }}年目の毎月支払額</td>
-                    <td></td>
+                    <td>{{ yen(rentSummary.monthlyFinal) }}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>{{ horizonYears }}年目の年間支払額</td>
-                    <td></td>
+                    <td>{{ yen(rentSummary.annualFinal) }}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>{{ horizonYears }}年間の支払総額</td>
-                    <td></td>
+                    <td>{{ yen(rentSummary.totalNYears) }}</td>
                     <td></td>
                     <td></td>
                 </tr>
             </tbody>
-        </div>
+        </table>
 
         <div class="tables">
             <YearlyTable v-if="results.rent" :title="'賃貸'" :rows="results.rent.rows" />
