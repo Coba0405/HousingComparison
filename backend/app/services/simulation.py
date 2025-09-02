@@ -38,7 +38,7 @@ def simulate_house(req):
         fire = req.fire_insurance_monthly
         taxes = annual_tax if month_in_year == req.property_tax_charge_month else 0
         # 10年ごと + 指定月
-        renov = req.house_renovation_every_10y_amount if ((m + 1) % (10 * 12) == 0 and month_in_year == req.house_renovation_charge_month) else 0
+        renov = req.house_renovation_every_10y_amount if ((m + 1) % (10 * 12) == 0 and month_in_year == req.house_renovation_change_month) else 0
         total = loan + fire + taxes + renov
         acc = rows_by_year.setdefault(y, dict(loan=0, fire=0, taxes=0, renov=0, total=0))
         acc["loan"] += loan; acc["fire"] += fire; acc["taxes"] += taxes; acc["renov"] += renov; acc["total"] += total

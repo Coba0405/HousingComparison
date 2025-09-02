@@ -24,6 +24,7 @@ class RentRequest(BaseRequest):
     contents_insurance_amount: int = Field(ge=0)
 
 class OwnerCommon(BaseRequest):
+    region: Region
     home_price: int = Field(ge=0)
     loan_years: int = Field(ge=1, le=50)
     loan_annual_rate: float = Field(ge=0.0)
@@ -32,6 +33,7 @@ class OwnerCommon(BaseRequest):
 
 class HouseRequest(OwnerCommon):
     mode: Literal["house"] = "house"
+    region: Region
     house_renovation_every_10y_amount: int = Field(ge=0)
     house_renovation_change_month: int = Field(ge=1, le=12, default=12)
 

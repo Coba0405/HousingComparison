@@ -7,27 +7,36 @@ const props = defineProps({ horizonYears: { type: Number, required: true} })
 
 const form = ref({
     horizon_years: 35,
-    region: '東京大都市部',
-    rouding_rule: 'round',
+    region: '東京大都心部',
+    rounding_rule: 'round',
     home_price: 30000000,
     loan_years: 35,
     loan_annual_rate: 0.012,
     fire_insurance_monthly: 1000,
     property_tax_charge_month: 12,
     house_renovation_every_10y_amount: 500000,
-    house_renovation_charge_month: 12,
+    house_renovation_change_month: 12,
 })
 
+// const regionOptions = [
+//     { value: 'tokyo_core', label: '東京大都心部' },
+//     { value: 'kanto_dense', label: '関東地価集中地域' },
+//     { value: 'regional_city_dense', label: '地方都市地価集中地域' },
+//     { value: 'regional_dense', label: '地方地価集中地域' },
+//     { value: 'regional', label: '地方地域' },
+//     { value: 'depopulated', label: '地方過疎地域' },
+// ]
+
 const regionOptions = [
-    { value: 'tokyo_core', label: '東京大都心部' },
-    { value: 'kanto_dense', label: '関東地価集中地域' },
-    { value: 'regional_city_dense', label: '地方都市地価集中地域' },
-    { value: 'regional_dense', label: '地方地価集中地域' },
-    { value: 'regional', label: '地方地域' },
-    { value: 'depopulated', label: '地方過疎地域' },
+    { value: '東京大都心部', label: '東京大都心部' },
+    { value: '関東地下集中地域', label: '関東地下集中地域' },
+    { value: '地方都市地価集中地域', label: '地方都市地価集中地域' },
+    { value: '地方地価集中地域', label: '地方地価集中地域' },
+    { value: '地方地域', label: '地方地域' },
+    { value: '地方過疎地域', label: '地方過疎地域' },
 ]
 
-async function submit(hYears = mergeProps.horizonYears) {
+async function submit(hYears = props.horizonYears) {
     const payload = {
         ...form.value,
         horizon_years: hYears,

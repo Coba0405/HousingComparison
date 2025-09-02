@@ -22,6 +22,7 @@ const condoRef = ref(null)
 
 function submitAll() {
     rentRef.value?.submit(horizonYears.value)
+    ownerRef.value?.submit(horizonYears.value)
     if (showCondo.value) {
         condoRef.value?.submit(horizonYears.value)
     } else {
@@ -31,16 +32,16 @@ function submitAll() {
 
 // 子からのemitを受け取るハンドラ
 function onRentDone(payload) { results.rent = payload }
-function onOwnerDone(payload) { results.owner = payload }
+function onOwnerDone(payload) {
+    console.log('owner payload', payload)
+    results.owner = payload
+}
 function onCondoDone(payload) { results.condo = payload }
 
 function pickAnnual(row) {
-    return (
-        Number(row?.total_cost_year) ??
-        Number(row?.total) ??
-        Number(row?.year_total) ??
-        0
-    )
+    const v = row?.total_cost_year ?? row?.total ?? row?.year_total ?? 0
+    const n = Number(v)
+    return Number.isFinite(n) ? n : 0
 }
 
 // n年目の行を取得
@@ -77,6 +78,31 @@ const rentSummary = computed(() => {
         totalNYears: totalNYears,
     }
 })
+
+const ownerSummary = computed(() => {
+    const rows = results.owner?.rows
+    if (!Array.isArray(rows) || rows.length === 0) return null
+
+    const n = Number(horizonYears.value)
+    const nthRow = getNthYearRow(rows, n)
+    if (!nthRow) return null
+
+    const annualN = pickAnnual(nthRow)
+    const monthlyN = annualN / 12
+
+    const upto = Math.min(n, rows.length)
+    let totalNYears = 0
+    for (let i = 0; i < upto; i++) {
+        totalNYears += pickAnnual(rows[i])
+    }
+
+    return {
+        monthlyFinal: monthlyN,
+        annualFinal: annualN,
+        totalNYears: totalNYears,
+    }
+})
+
 </script>
 
 <template>
@@ -112,27 +138,27 @@ const rentSummary = computed(() => {
                 <tr>
                     <td>{{ horizonYears }}年目の毎月支払額</td>
                     <td>{{ yen(rentSummary.monthlyFinal) }}</td>
-                    <td></td>
-                    <td></td>
+                    <td>{{ yen(ownerSummary.monthlyFinal) }}</td>
+                    <td>{{ yen(rentSummary.monthlyFinal - ownerSummary.monthlyFinal) }}</td>
                 </tr>
                 <tr>
                     <td>{{ horizonYears }}年目の年間支払額</td>
                     <td>{{ yen(rentSummary.annualFinal) }}</td>
-                    <td></td>
-                    <td></td>
+                    <td>{{ yen(ownerSummary.annualFinal) }}</td>
+                    <td>{{ yen(rentSummary.annualFinal - ownerSummary.annualFinal) }}</td>
                 </tr>
                 <tr>
                     <td>{{ horizonYears }}年間の支払総額</td>
                     <td>{{ yen(rentSummary.totalNYears) }}</td>
-                    <td></td>
-                    <td></td>
+                    <td>{{ yen(ownerSummary.totalNYears) }}</td>
+                    <td>{{ yen(rentSummary.totalNYears - ownerSummary.totalNYears) }}</td>
                 </tr>
             </tbody>
         </table>
 
         <div class="tables">
             <YearlyTable v-if="results.rent" :title="'賃貸'" :rows="results.rent.rows" />
-            <YearlyTable v-if="results.owner && !showCondo" :title="'持ち家(戸建)'" :rows="results.owner.rows" />
+            <YearlyTable v-if="results.owner" :title="'持ち家(戸建)'" :rows="results.owner.rows" />
             <YearlyTable v-if="results.condo && showCondo" :title="'分譲マンション'" :rows="results.condo.rows" />
         </div>
     </div>

@@ -3,10 +3,7 @@ import { ref } from 'vue'
 import { simulateRent } from '../utils/api.js'
 
 const emit = defineEmits(['done'])
-
-const props = defineProps({
-    horizonYears: { type: Number, required: true }
-})
+const props = defineProps({ horizonYears: { type: Number, required: true } })
 
 const form = ref({
     rounding_rule: 'round',

@@ -22,21 +22,31 @@ const ALL_COLUMNS = [
 ]
 
 const visibleCols = computed(() => {
-    const acc = {}
-    props.rows.forEach(r => {
-        ALL_COLUMNS.forEach(c => {
-            if (r[c.key] && Number(r[c.key]) !== 0) acc[c.key] = true
-        })
+    if (!props.rows?.length) return []
+    const used = new Set()
+
+    for (const r of props.rows) {
+        for (const c of ALL_COLUMNS) {
+        const v = r?.[c.key]
+        if (typeof v === 'number' && v !== 0) used.add(c.key)
+        }
+    }
+    used.add('total_cost_year')
+    used.add('cum_total_cost')
+
+    return ALL_COLUMNS.filter(c => used.has(c.key))
     })
-    acc['total_cost_year'] = true
-    acc['cum_total_cost'] = true
-    return ALL_COLUMNS.filter(c => acc[c.key])
-})
+
+    function fmt(value, key) {
+    if (key === 'year') return String(value ?? '—')
+    if (typeof value !== 'number') return '—'
+    return yen(value)
+}
 </script>
 
 <template>
-    <div class="card">
-        <h2>{{ title }}</h2>
+    <div v-if="rows?.length" class="card">
+        <h2 class="title">{{ title }}</h2>
         <div class="table-wrap">
             <table>
                 <thead>
@@ -48,25 +58,28 @@ const visibleCols = computed(() => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="row in rows" :key="row.year">
-                        <td>{{ row.year }}</td>
+                    <tr v-for="(row, i) in rows" :key="row.year ?? i">
+                        <td class="year-col">
+                            {{ row.year }}
+                        </td>
                         <td v-for="col in visibleCols" :key="col.key" :class="{ sticky: col.sticky }">
-                            {{ yen(row[col.key]) }}
+                            {{ fmt(row[col.key], col.key) }}
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+    <div v-else class="empty">データがありません</div>
 </template>
 
-
-<style>
-.card { border:1px solid #ddd; border-radius:8px; padding:12px; margin-top:12px; }
-.table-wrap { overflow-x:auto; }
-table { width:100%; border-collapse: collapse; min-width: 720px; }
-th, td { border-bottom:1px solid #eee; padding:6px 8px; text-align:right; }
-th:first-child, td:first-child { text-align:center; }
-th.sticky, td.sticky { font-weight:600; }
-h2 { margin: 0 0 8px; }
+<style scoped>
+.card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-top: 12px; }
+.title { margin: 0 0 8px; font-weight: 600; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 760px; }
+th, td { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: right; }
+.year-col { text-align: center; white-space: nowrap; }
+th.sticky, td.sticky { font-weight: 700; }
+.empty { margin-top: 12px; color: #666; }
 </style>

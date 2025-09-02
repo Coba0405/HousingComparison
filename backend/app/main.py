@@ -3,14 +3,15 @@ from flask_cors import CORS
 from pydantic import ValidationError
 from app.models import (RentRequest, HouseRequest, CondoRequest, SimulationResponse, YearRow)
 from app.services.simulation import simulate_rent, simulate_house, simulate_condo
+from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 CORS(
     app,
-    resources={r"/*": {"origins": ["http://localhost:5173"]}},
-    supports_credentials=True,
+    resources={r"/simulate/*": {"origins": ["http://localhost:5173"]}},
+    supports_credentials=False,
     allow_headers=["Content-Type"],
-    methods=["GET", "POST", "OPTIONS"],
+    methods=["POST", "OPTIONS", "GET"],
 )
 
 def to_response(mode: str, years: int, rows_dict, region=None):
@@ -20,6 +21,10 @@ def to_response(mode: str, years: int, rows_dict, region=None):
 @app.route("/ping", methods=["GET"])
 def ping():
     return "pong"
+
+@app.errorhandler(HTTPException)
+def on_http_error(e):
+    return jsonify({"error": e.name, "message": e.description}), e.code
 
 @app.route("/simulate/rent", methods=["POST"])
 def rent_api():
@@ -33,6 +38,18 @@ def rent_api():
 
 @app.route("/simulate/house", methods=["POST"])
 def house_api():
+    try:
+        payload = request.get_json(force=True)
+        req = HouseRequest(**payload)
+        rows = simulate_house(req)
+        return jsonify(to_response("house", req.horizon_years, rows, region=req.region))
+    except ValidationError as e:
+        return jsonify({"error": "validation_error", "detail": e.errors()}), 400
+
+@app.route("/simulate/owner", methods=["POST", "OPTIONS"])
+def owner_api():
+    if request.method == "OPTIONS":
+        return ("", 204)
     try:
         payload = request.get_json(force=True)
         req = HouseRequest(**payload)
