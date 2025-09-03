@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { simulateOwner } from '../utils/api.js'
+import { calcKotos } from '@utils/tax.js'
 
 const emit = defineEmits(['done'])
 const props = defineProps({ horizonYears: { type: Number, required: true} })
@@ -36,10 +37,24 @@ const regionOptions = [
     { value: '地方過疎地域', label: '地方過疎地域' },
 ]
 
+const tokeiRate = ref(0.003)
+const rosenkaPerSqm = ref(1_000_000)
+const landAreaSqm = ref(100)
+
+const kotosAnnual = computed(() => {
+    const r = calcKotos(
+        Number(tokeiRate.value) || 0,
+        Number(landAreaSqm.value) || 0,
+        Number(rosenkaPerSqm.value) || 0,
+    );
+    return r.total;
+});
+
 async function submit(hYears = props.horizonYears) {
     const payload = {
         ...form.value,
         horizon_years: hYears,
+        property_taxes_annual: Math.max(0, Math.round(kotosAnnual.value)),
     }
     const res = await simulateOwner(payload)
     emit('done', res)
